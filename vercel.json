@@ -2,20 +2,18 @@
   "version": 2,
   "builds": [
     {
-      "src": "app.py",
+      "src": "app-vercel.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "app.py"
+      "dest": "app-vercel.py"
     }
   ],
-  "functions": {
-    "app.py": {
-      "maxDuration": 30
-    }
+  "env": {
+    "PYTHONPATH": "."
   }
 }
 
