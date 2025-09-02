@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Collatz Conjecture Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin: 20px auto;
+            max-width: 1200px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .form-control {
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+            padding: 12px 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .sequence-display {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+        
+        .alert {
+            border-radius: 15px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-container">
+            <!-- Header -->
+            <div class="header">
+                <h1><i class="fas fa-calculator"></i> The Collatz Conjecture Analyzer</h1>
+                <p class="mb-0">Explore the fascinating patterns of one of mathematics' most famous unsolved problems - By Rish Arora</p>
+            </div>
+            
+            <div class="p-4">
+                <!-- Input Section -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5><i class="fas fa-search"></i> Analyze Single Number</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="singleNumber" class="form-label">Enter a positive integer:</label>
+                                    <input type="number" class="form-control" id="singleNumber" placeholder="e.g., 27" min="1">
+                                </div>
+                                <button class="btn btn-primary w-100" onclick="analyzeSingle()">
+                                    <i class="fas fa-play"></i> Analyze
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h5><i class="fas fa-chart-line"></i> Analyze Range</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label for="startRange" class="form-label">Start:</label>
+                                        <input type="number" class="form-control" id="startRange" placeholder="1" min="1">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="endRange" class="form-label">End:</label>
+                                        <input type="number" class="form-control" id="endRange" placeholder="100" min="1">
+                                    </div>
+                                </div>
+                                <button class="btn btn-success w-100 mt-3" onclick="analyzeRange()">
+                                    <i class="fas fa-chart-bar"></i> Analyze Range
+                                </button>
+                                <small class="text-muted">Maximum 1000 numbers per range</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Loading -->
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing Collatz sequences...</p>
+                </div>
+                
+                <!-- Results Section -->
+                <div id="results" style="display: none;">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5><i class="fas fa-chart-pie"></i> Analysis Results</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Single Number Results -->
+                            <div id="singleResults" style="display: none;">
+                                <div class="result-card">
+                                    <h6>Sequence Analysis</h6>
+                                    <div class="stats-grid">
+                                        <div class="stat-card">
+                                            <div class="stat-value" id="seqLength">-</div>
+                                            <div class="stat-label">Sequence Length</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value" id="maxValue">-</div>
+                                            <div class="stat-label">Peak Value</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value" id="stepsToPeak">-</div>
+                                            <div class="stat-label">Steps to Peak</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value" id="execTime">-</div>
+                                            <div class="stat-label">Execution Time (ms)</div>
+                                        </div>
+                                    </div>
+                                    <div class="sequence-display" id="sequenceDisplay"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Range Results -->
+                            <div id="rangeResults" style="display: none;">
+                                <div class="result-card">
+                                    <h6>Range Analysis Insights</h6>
+                                    <div class="stats-grid">
+                                        <div class="stat-card">
+                                            <div class="stat-value" id="totalAnalyzed">-</div>
+                                            <div class="stat-label">Numbers Analyzed</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value" id="avgLength">-</div>
+                                            <div class="stat-label">Avg Sequence Length</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value" id="highestPeak">-</div>
+                                            <div class="stat-label">Highest Peak</div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-value" id="longestSeq">-</div>
+                                            <div class="stat-label">Longest Sequence</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Top Performers -->
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <h6>Top 5 Longest Sequences</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Number</th>
+                                                        <th>Length</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="longestTable"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Top 5 Highest Peaks</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Number</th>
+                                                        <th>Peak</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="peaksTable"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Chart -->
+                                <div class="mt-4">
+                                    <canvas id="analysisChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                            
+                            <!-- Download Button -->
+                            <div class="mt-4 text-center">
+                                <button class="btn btn-outline-primary" onclick="downloadCSV()" id="downloadBtn" style="display: none;">
+                                    <i class="fas fa-download"></i> Download CSV
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Error Messages -->
+                <div id="errorAlert" class="alert alert-danger" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentData = [];
+        let chart = null;
+
+        async function analyzeSingle() {
+            const number = document.getElementById('singleNumber').value;
+            if (!number || number <= 0) {
+                showError('Please enter a valid positive number');
+                return;
+            }
+
+            showLoading();
+            hideError();
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ number: parseInt(number) })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentData = [result.data];
+                    displaySingleResults(result.data);
+                } else {
+                    showError(result.error || 'Analysis failed');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function analyzeRange() {
+            const start = document.getElementById('startRange').value;
+            const end = document.getElementById('endRange').value;
+            
+            if (!start || !end || start <= 0 || end <= 0) {
+                showError('Please enter valid positive numbers');
+                return;
+            }
+
+            showLoading();
+            hideError();
+
+            try {
+                const response = await fetch('/api/analyze-range', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        start: parseInt(start), 
+                        end: parseInt(end) 
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentData = result.data;
+                    displayRangeResults(result.data, result.insights);
+                } else {
+                    showError(result.error || 'Analysis failed');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function displaySingleResults(data) {
+            document.getElementById('singleResults').style.display = 'block';
+            document.getElementById('rangeResults').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+
+            document.getElementById('seqLength').textContent = data.sequence_length;
+            document.getElementById('maxValue').textContent = data.max_value.toLocaleString();
+            document.getElementById('stepsToPeak').textContent = data.steps_to_peak;
+            document.getElementById('execTime').textContent = (data.execution_time * 1000).toFixed(2);
+            document.getElementById('sequenceDisplay').textContent = data.sequence_str;
+        }
+
+        function displayRangeResults(data, insights) {
+            document.getElementById('singleResults').style.display = 'none';
+            document.getElementById('rangeResults').style.display = 'block';
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('downloadBtn').style.display = 'inline-block';
+
+            // Update statistics
+            document.getElementById('totalAnalyzed').textContent = insights.total_numbers_analyzed;
+            document.getElementById('avgLength').textContent = insights.average_sequence_length.toFixed(1);
+            document.getElementById('highestPeak').textContent = insights.highest_peak_value.toLocaleString();
+            document.getElementById('longestSeq').textContent = insights.max_sequence_length;
+
+            // Update tables
+            updateTable('longestTable', insights.numbers_with_longest_sequences, 'sequence_length');
+            updateTable('peaksTable', insights.numbers_with_highest_peaks, 'max_value');
+
+            // Create chart
+            createChart(data);
+        }
+
+        function updateTable(tableId, data, valueKey) {
+            const tbody = document.getElementById(tableId);
+            tbody.innerHTML = '';
+            
+            data.forEach(item => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = item.starting_number;
+                row.insertCell(1).textContent = item[valueKey].toLocaleString();
+            });
+        }
+
+        function createChart(data) {
+            const ctx = document.getElementById('analysisChart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+
+            // Prepare data for chart (show first 50 points to avoid overcrowding)
+            const chartData = data.slice(0, 50);
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.map(d => d.starting_number),
+                    datasets: [{
+                        label: 'Sequence Length',
+                        data: chartData.map(d => d.sequence_length),
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1
+                    }, {
+                        label: 'Peak Value (scaled)',
+                        data: chartData.map(d => d.max_value / 100),
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.1,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Starting Number'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Sequence Length'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Peak Value (scaled)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        async function downloadCSV() {
+            if (currentData.length === 0) {
+                showError('No data to download');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/download-csv', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ data: currentData })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'collatz_analysis.csv';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    const error = await response.json();
+                    showError(error.error || 'Download failed');
+                }
+            } catch (error) {
+                showError('Download error: ' + error.message);
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            alert.textContent = message;
+            alert.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorAlert').style.display = 'none';
+        }
+
+        // Add some example numbers for quick testing
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('singleNumber').value = '27';
+            document.getElementById('startRange').value = '1';
+            document.getElementById('endRange').value = '100';
+        });
+    </script>
+</body>
+</html>
+
